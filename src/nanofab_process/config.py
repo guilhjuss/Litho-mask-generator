@@ -15,6 +15,13 @@ class Layer:
 
 
 @dataclass(frozen=True)
+class Grid:
+    rows: int
+    columns: int
+    pitch_um: tuple[float, float]
+
+
+@dataclass(frozen=True)
 class Structure:
     type: str
     id: str
@@ -22,6 +29,7 @@ class Structure:
     width_um: float
     length_um: float
     layer: str
+    grid: Grid | None = None
 
 
 @dataclass(frozen=True)
@@ -103,7 +111,7 @@ def parse_config(data) -> MaskConfig:
     structures, ids = [], set()
     for index, raw in enumerate(root["structures"]):
         context = f"structures[{index}]"
-        raw = _fields(raw, {"type", "id", "center_um", "width_um", "length_um", "layer"}, set(), context)
+        raw = _fields(raw, {"type", "id", "center_um", "width_um", "length_um", "layer"}, {"grid"}, context)
         kind = _text(raw["type"], context + ".type")
         if kind not in ("line", "cross"):
             raise ConfigError(f"{context}: type must be line or cross")
@@ -122,7 +130,17 @@ def parse_config(data) -> MaskConfig:
         layer = _text(raw["layer"], context + ".layer")
         if layer not in layers:
             raise ConfigError(f"{context}: unknown layer {layer}")
-        structures.append(Structure(kind, sid, center, width, length, layer))
+        grid = None
+        if "grid" in raw:
+            values = _fields(raw["grid"], {"rows", "columns", "pitch_um"}, set(), context + ".grid")
+            rows, columns = values["rows"], values["columns"]
+            if any(type(v) is not int or v <= 0 for v in (rows, columns)):
+                raise ConfigError(f"{context}: grid rows and columns must be positive integers")
+            pitch = values["pitch_um"]
+            if not isinstance(pitch, list) or len(pitch) != 2:
+                raise ConfigError(f"{context}: grid pitch_um must be [x_spacing, y_spacing]")
+            grid = Grid(rows, columns, tuple(_number(v, context + ".grid.pitch_um", True) for v in pitch))
+        structures.append(Structure(kind, sid, center, width, length, layer, grid))
     return MaskConfig(mask_id, layers, tuple(structures))
 
 

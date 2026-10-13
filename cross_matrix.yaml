@@ -1,0 +1,20 @@
+mask:
+  id: cross_matrix
+  unit: um
+
+layers:
+  metal:
+    number: 1
+    datatype: 0
+
+structures:
+  - type: cross
+    id: crosses
+    center_um: [0, 0]
+    width_um: 50
+    length_um: 200
+    layer: metal
+    grid:
+      rows: 3
+      columns: 4
+      pitch_um: [600, 600]

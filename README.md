@@ -75,4 +75,19 @@ tests/
     test_geometry.py
 ```
 
-The initial version deliberately has no recursive YAML includes, grids, rotations, titles or labels. Add structures directly to `structures`. Export overwrites the selected output file. This project is independent of the existing shared repository.
+## Matrices
+
+Add an optional `grid` to any line or cross entry:
+
+```yaml
+    grid:
+      rows: 3
+      columns: 4
+      pitch_um: [600, 600]
+```
+
+`center_um` is the center of the entire matrix. `pitch_um` specifies the center-to-center spacing in x and y, in micrometers. Rows run along y and columns along x. All copies have the same dimensions and layer. Positive integer row/column counts and positive finite pitches are required. Copies may overlap if the pitch is too small; spacing is not an edge-to-edge gap.
+
+Try `nanofab cross_matrix.yaml -o cross_matrix.gds`. The included example has 12 crosses, each 400 x 400 um with 50 um thick arms, spaced 600 um apart. Existing entries without `grid` remain single structures.
+
+The generator has no recursive YAML includes, rotations, titles or labels. Add structures directly to `structures`. Export overwrites the selected output file. This project is independent of the existing shared repository.

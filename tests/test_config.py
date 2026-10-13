@@ -7,7 +7,7 @@ import yaml
 from nanofab_process.config import ConfigError, load_config, parse_config
 
 
-EXAMPLE = Path(__file__).resolve().parents[1] / "mask.yaml"
+EXAMPLE = Path(__file__).with_name("example.yaml")
 
 
 def test_example():
@@ -72,5 +72,22 @@ def test_unit_cell_name_and_empty_structures():
         with pytest.raises(ConfigError):
             parse_config(variant)
     data["structures"] = []
+    with pytest.raises(ConfigError):
+        parse_config(data)
+
+
+@pytest.mark.parametrize("grid", [
+    {"rows": 0, "columns": 2, "pitch_um": [20, 20]},
+    {"rows": True, "columns": 2, "pitch_um": [20, 20]},
+    {"rows": 2, "columns": 1.5, "pitch_um": [20, 20]},
+    {"rows": 2, "columns": 2, "pitch_um": [0, 20]},
+    {"rows": 2, "columns": 2, "pitch_um": [20]},
+    {"rows": 2, "columns": 2, "pitch_um": [20, float("inf")]},
+    {"rows": 2, "columns": 2},
+    None,
+])
+def test_invalid_grid(grid):
+    data = yaml.safe_load(EXAMPLE.read_text())
+    data["structures"][1]["grid"] = grid
     with pytest.raises(ConfigError):
         parse_config(data)

@@ -9,7 +9,7 @@ from nanofab_process.gds import export_gds
 from nanofab_process.geometry import structure_rectangles
 
 
-EXAMPLE = Path(__file__).resolve().parents[1] / "mask.yaml"
+EXAMPLE = Path(__file__).with_name("example.yaml")
 
 
 def test_line_dimensions_and_translation():
@@ -65,3 +65,20 @@ def test_export_rejects_unrepresentable_geometry(tmp_path, width, center):
     with pytest.raises(ValueError):
         export_gds(config, tmp_path / "bad.gds")
     assert not (tmp_path / "bad.gds").exists()
+
+
+@pytest.mark.parametrize("rows,columns", [(3, 4), (2, 3), (1, 1)])
+def test_grid_positions_and_export(tmp_path, rows, columns):
+    from dataclasses import replace
+    from nanofab_process.config import Grid
+    from nanofab_process.geometry import generate_geometry
+    config = load_config(EXAMPLE)
+    cross = replace(config.structures[1], center_um=(10, -20), grid=Grid(rows, columns, (30, 40)))
+    config = replace(config, structures=(cross,))
+    rectangles = generate_geometry(config)
+    assert len(rectangles) == rows * columns * 5
+    centers = [((r.lower[0] + r.upper[0]) / 2, (r.lower[1] + r.upper[1]) / 2) for r in rectangles[::5]]
+    assert centers == [(10 + (c - (columns - 1) / 2) * 30, -20 + (r - (rows - 1) / 2) * 40)
+                       for r in range(rows) for c in range(columns)]
+    library = gdstk.read_gds(export_gds(config, tmp_path / "matrix.gds"))
+    assert len(library.top_level()[0].polygons) == rows * columns * 5

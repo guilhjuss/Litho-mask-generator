@@ -1,6 +1,6 @@
 """Pure geometry, expressed as axis-aligned rectangles in micrometers."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from .config import MaskConfig, Structure
 
@@ -37,4 +37,18 @@ def structure_rectangles(s: Structure) -> list[Rectangle]:
 
 
 def generate_geometry(config: MaskConfig) -> list[Rectangle]:
-    return [rect for s in config.structures for rect in structure_rectangles(s)]
+    rectangles = []
+    for s in config.structures:
+        if s.grid is None:
+            rectangles.extend(structure_rectangles(s))
+            continue
+        # center_um locates the center of the entire matrix.
+        grid = s.grid
+        for row in range(grid.rows):
+            for column in range(grid.columns):
+                center = (
+                    s.center_um[0] + (column - (grid.columns - 1) / 2) * grid.pitch_um[0],
+                    s.center_um[1] + (row - (grid.rows - 1) / 2) * grid.pitch_um[1],
+                )
+                rectangles.extend(structure_rectangles(replace(s, center_um=center, grid=None)))
+    return rectangles
