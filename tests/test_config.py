@@ -72,8 +72,7 @@ def test_unit_cell_name_and_empty_structures():
         with pytest.raises(ConfigError):
             parse_config(variant)
     data["structures"] = []
-    with pytest.raises(ConfigError):
-        parse_config(data)
+    assert parse_config(data).structures == ()
 
 
 @pytest.mark.parametrize("grid", [

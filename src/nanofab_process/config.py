@@ -110,8 +110,8 @@ def parse_config(data) -> MaskConfig:
         if any(type(v) is not int or not 0 <= v <= 65535 for v in values):
             raise ConfigError(f"layer {name}: number and datatype must be integers from 0 to 65535")
         layers[name] = Layer(*values)
-    if not isinstance(root["structures"], list) or not root["structures"]:
-        raise ConfigError("structures must be a nonempty list")
+    if not isinstance(root["structures"], list):
+        raise ConfigError("structures must be a list")
     structures, ids = [], set()
     for index, raw in enumerate(root["structures"]):
         context = f"structures[{index}]"
