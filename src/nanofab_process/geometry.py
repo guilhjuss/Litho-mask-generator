@@ -4,6 +4,7 @@ from dataclasses import dataclass, replace
 import math
 
 from .config import MaskConfig, Structure
+from .coordinate_text import coordinate_rectangles
 
 
 @dataclass(frozen=True)
@@ -43,19 +44,26 @@ def structure_rectangles(s: Structure) -> list[Rectangle]:
         # Two bars and two end caps form the cross; the fifth rectangle
         # is a detached square marker in the upper-right quadrant.
         h = w / 2
-        return [
+        rectangles = [
             rect(-length, -h, length, h),
             rect(-h, -length + w, h, length - w),
             rect(-h, length - w, h, length),
             rect(-h, -length, h, -length + w),
             rect(length - w, length - w, length, length),
         ]
+        if s.show_coordinates:
+            offset = length + s.label_height_um / 2
+            rectangles.extend(rect(x0 + offset, y0, x1 + offset, y1)
+                              for x0, y0, x1, y1 in coordinate_rectangles(x, y, s.label_height_um))
+        return rectangles
     raise ValueError(f"Unsupported structure type: {s.type}")
 
 
 def generate_geometry(config: MaskConfig) -> list[Rectangle]:
     rectangles = []
     for s in config.structures:
+        if not s.enabled:
+            continue
         if s.grid is None:
             rectangles.extend(structure_rectangles(s))
             continue

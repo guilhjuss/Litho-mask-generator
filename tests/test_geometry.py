@@ -115,3 +115,20 @@ def test_rotated_cross_marker_and_grid_centers(tmp_path):
     library = gdstk.read_gds(export_gds(config, tmp_path / "mixed.gds"))
     assert len(library.top_level()[0].polygons) == 21
     assert library.top_level()[0].polygons[0].points == pytest.approx(gdstk.Polygon(rects[0].points).points, abs=0.00051)
+
+
+def test_coordinate_labels_and_disabled_entries(tmp_path):
+    from dataclasses import replace
+    from nanofab_process.geometry import generate_geometry
+    from nanofab_process.coordinate_text import format_coordinate
+    config = load_config(EXAMPLE)
+    off = replace(config.structures[0], enabled=False)
+    cross = replace(config.structures[1], show_coordinates=True, label_height_um=14, angle_deg=45)
+    config = replace(config, structures=(off, cross))
+    geometry = generate_geometry(config)
+    assert len(geometry) > 5
+    assert all(r.structure_id == cross.id for r in geometry)
+    library = gdstk.read_gds(export_gds(config, tmp_path / "labeled.gds"))
+    assert len(library.top_level()[0].polygons) == len(geometry)
+    assert format_coordinate(-0.0001) == "0"
+    assert format_coordinate(-100.125) == "-100.125"

@@ -108,3 +108,21 @@ def test_independent_angles_and_default():
     data["structures"][1]["angle_deg"] = 450
     config = parse_config(data)
     assert [s.angle_deg for s in config.structures] == [315, 90]
+
+
+@pytest.mark.parametrize("field,value", [("enabled", 0), ("show_coordinates", "true"), ("label_height_um", 0)])
+def test_invalid_object_options(field, value):
+    data = yaml.safe_load(EXAMPLE.read_text())
+    data["structures"][1][field] = value
+    with pytest.raises(ConfigError):
+        parse_config(data)
+
+
+def test_labeled_cross_options():
+    data = yaml.safe_load(EXAMPLE.read_text())
+    data["structures"][0]["enabled"] = False
+    data["structures"][1].update(show_coordinates=True, label_height_um=14)
+    config = parse_config(data)
+    assert not config.structures[0].enabled
+    assert config.structures[1].show_coordinates
+    assert config.structures[1].label_height_um == 14

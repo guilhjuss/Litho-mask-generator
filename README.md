@@ -72,6 +72,7 @@ src/nanofab_process/
     __init__.py
     config.py
     geometry.py
+    coordinate_text.py
     gds.py
     cli.py
 tests/
@@ -114,4 +115,10 @@ For a matrix, each copy rotates around its own center with the entry's angle. Th
       pitch_um: [150, 150]
 ```
 
-The generator has no recursive YAML includes, titles or labels. Add structures directly to `structures`. Export overwrites the selected output file. This project is independent of the existing shared repository.
+## Object options and coordinate labels
+
+Any entry can use `enabled: false` to keep its settings in the YAML while omitting it from the generated mask. It defaults to true.
+
+Cross entries can use `show_coordinates: true` and optional `label_height_um: 20`. The center coordinates are generated as physical polygon text, in micrometers rounded to 0.001 um, on the same layer as the cross. Each matrix copy displays its own absolute center coordinates. The two-line text starts to the right of the cross and rotates with it. Text is included in GDS geometry, bounds and range checks; it is not a viewer-only annotation. Default text height is 20 um. Unsupported options and nonpositive text heights are rejected.
+
+The generator has no recursive YAML includes or titles. Add structures directly to `structures`. Export overwrites the selected output file. This project is independent of the existing shared repository.

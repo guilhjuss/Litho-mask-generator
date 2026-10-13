@@ -31,6 +31,9 @@ class Structure:
     layer: str
     grid: Grid | None = None
     angle_deg: float = 0.0
+    enabled: bool = True
+    show_coordinates: bool = False
+    label_height_um: float = 20.0
 
 
 @dataclass(frozen=True)
@@ -112,7 +115,7 @@ def parse_config(data) -> MaskConfig:
     structures, ids = [], set()
     for index, raw in enumerate(root["structures"]):
         context = f"structures[{index}]"
-        raw = _fields(raw, {"type", "id", "center_um", "width_um", "length_um", "layer"}, {"grid", "angle_deg"}, context)
+        raw = _fields(raw, {"type", "id", "center_um", "width_um", "length_um", "layer"}, {"grid", "angle_deg", "enabled", "show_coordinates", "label_height_um"}, context)
         kind = _text(raw["type"], context + ".type")
         if kind not in ("line", "cross"):
             raise ConfigError(f"{context}: type must be line or cross")
@@ -142,7 +145,14 @@ def parse_config(data) -> MaskConfig:
                 raise ConfigError(f"{context}: grid pitch_um must be [x_spacing, y_spacing]")
             grid = Grid(rows, columns, tuple(_number(v, context + ".grid.pitch_um", True) for v in pitch))
         angle = _number(raw.get("angle_deg", 0), context + ".angle_deg") % 360
-        structures.append(Structure(kind, sid, center, width, length, layer, grid, angle))
+        enabled = raw.get("enabled", True)
+        show_coordinates = raw.get("show_coordinates", False)
+        if type(enabled) is not bool or type(show_coordinates) is not bool:
+            raise ConfigError(f"{context}: enabled and show_coordinates must be true or false")
+        if show_coordinates and kind != "cross":
+            raise ConfigError(f"{context}: coordinate labels are supported on crosses")
+        label_height = _number(raw.get("label_height_um", 20), context + ".label_height_um", True)
+        structures.append(Structure(kind, sid, center, width, length, layer, grid, angle, enabled, show_coordinates, label_height))
     return MaskConfig(mask_id, layers, tuple(structures))
 
 
