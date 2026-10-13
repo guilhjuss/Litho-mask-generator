@@ -19,7 +19,7 @@ def test_example():
 
 
 @pytest.mark.parametrize("field,value", [
-    ("type", "circle"), ("width_um", 0), ("length_um", -1),
+    ("type", "unknown_shape"), ("width_um", 0), ("length_um", -1),
     ("width_um", True), ("width_um", float("nan")),
     ("center_um", [0]), ("center_um", [0, float("inf")]),
     ("layer", "missing"), ("id", ""), ("width_um", "2"),

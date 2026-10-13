@@ -122,3 +122,15 @@ Any entry can use `enabled: false` to keep its settings in the YAML while omitti
 Cross entries can use `show_coordinates: true` and optional `label_height_um: 20`. The center coordinates are generated as physical polygon text, in micrometers rounded to 0.001 um, on the same layer as the cross. Each matrix copy displays its own absolute center coordinates. The two-line text starts to the right of the cross and rotates with it. Text is included in GDS geometry, bounds and range checks; it is not a viewer-only annotation. Default text height is 20 um. Unsupported options and nonpositive text heights are rejected.
 
 The generator has no recursive YAML includes or titles. Add structures directly to `structures`. Export overwrites the selected output file. This project is independent of the existing shared repository.
+
+## Additional geometries
+
+Supported types now include `rectangle`, `circle`, `label`, `contact_pad`, and `alignment_mark`, alongside line and cross. They all use the same position/rotation/grid/layer/enabled options and one mask.yaml.
+
+- rectangle: `length_um` along x, `width_um` along y.
+- circle: `width_um` is diameter; `length_um` is retained but unused. Export uses a 128-vertex polygon approximation.
+- label: `width_um` is text height; `length_um` is retained but unused. Optional `label_auto` defaults to true; `label_target` can refer to another entry to describe its name and dimensions. Otherwise the label uses its own ID. `label_auto: false` uses `text`. Uppercase polygon text supports ASCII letters, digits, spaces, newlines and basic punctuation, up to 160 characters. A deleted target falls back to the label ID.
+- contact_pad: rectangular pad with `lead_width_um` (default 10) and `lead_length_um` (default 100), extending left before rotation.
+- alignment_mark: two nested box frames, inner size 60% of outer, with `frame_width_um` (default 5) and optional `inner_layer`. Outer uses `layer`; inner defaults to the same layer. Frame width must be smaller than 30% of either outer dimension. These are box-in-box alignment targets.
+
+Labels are actual physical mask polygons. Wafer background labels belong to the visual designer and are not mask structures.

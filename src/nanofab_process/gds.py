@@ -20,9 +20,9 @@ def export_gds(config: MaskConfig, path: str | Path) -> Path:
         rounded = [(round(x * 1000), round(y * 1000)) for x, y in points]
         ox, oy = rounded[0]
         relative = [(x - ox, y - oy) for x, y in rounded]
-        twice_area = sum(x * relative[(i + 1) % 4][1] - y * relative[(i + 1) % 4][0]
+        twice_area = sum(x * relative[(i + 1) % len(relative)][1] - y * relative[(i + 1) % len(relative)][0]
                          for i, (x, y) in enumerate(relative))
-        if len(set(rounded)) != 4 or twice_area == 0:
+        if len(set(rounded)) < 3 or twice_area == 0:
             raise ValueError(f"{rect.structure_id}: rectangle collapses at 1 nm precision")
         layer = config.layers[rect.layer]
         cell.add(gdstk.Polygon(points, layer=layer.number, datatype=layer.datatype))

@@ -5,6 +5,7 @@ import math
 
 from .config import MaskConfig, Structure
 from .coordinate_text import coordinate_rectangles
+from .extra_geometry import special_geometry, resolved_text
 
 
 @dataclass(frozen=True)
@@ -32,6 +33,8 @@ class Rectangle:
 
 
 def structure_rectangles(s: Structure) -> list[Rectangle]:
+    if s.type not in ("line", "cross"):
+        return special_geometry(s)
     x, y = s.center_um
     w, length = s.width_um, s.length_um
 
@@ -64,6 +67,8 @@ def generate_geometry(config: MaskConfig) -> list[Rectangle]:
     for s in config.structures:
         if not s.enabled:
             continue
+        if s.type == "label":
+            s = replace(s, text=resolved_text(s, config), label_auto=False)
         if s.grid is None:
             rectangles.extend(structure_rectangles(s))
             continue
