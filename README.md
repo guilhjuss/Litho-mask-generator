@@ -94,4 +94,24 @@ Add an optional `grid` to any line or cross entry:
 
 Always edit `mask.yaml` and run `nanofab mask.yaml -o output.gds`. The included mask contains one line and 12 crosses, each 400 x 400 um with 50 um thick arms, spaced 600 um apart. Existing entries without `grid` remain single structures. Remove the `grid` block to return to one cross, or add more entries under `structures` to combine other structures in the same mask.
 
-The generator has no recursive YAML includes, rotations, titles or labels. Add structures directly to `structures`. Export overwrites the selected output file. This project is independent of the existing shared repository.
+## Rotation
+
+Each entry under `structures` can have its own optional `angle_deg`, beside `type`, `id`, and `center_um`. It defaults to 0. Positive angles rotate counterclockwise around the structure center; negative angles rotate clockwise. For example, `angle_deg: 90` makes a line vertical, and `angle_deg: 45` makes it diagonal. Any finite numeric angle is allowed; angles wrap at 360 degrees.
+
+For a matrix, each copy rotates around its own center with the entry's angle. The grid centers and x/y pitch do not rotate. A cross's orientation marker rotates with its arms. Use separate structure entries for different angles, including separate grid entries for differently rotated matrices. No global angle is required. Rotation can increase the overall bounding box and cause nearby copies to overlap.
+
+```yaml
+  - type: line
+    id: diagonal_lines
+    center_um: [1000, 0]
+    width_um: 5
+    length_um: 100
+    layer: metal
+    angle_deg: 45
+    grid:
+      rows: 2
+      columns: 3
+      pitch_um: [150, 150]
+```
+
+The generator has no recursive YAML includes, titles or labels. Add structures directly to `structures`. Export overwrites the selected output file. This project is independent of the existing shared repository.

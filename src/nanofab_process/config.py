@@ -30,6 +30,7 @@ class Structure:
     length_um: float
     layer: str
     grid: Grid | None = None
+    angle_deg: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -111,7 +112,7 @@ def parse_config(data) -> MaskConfig:
     structures, ids = [], set()
     for index, raw in enumerate(root["structures"]):
         context = f"structures[{index}]"
-        raw = _fields(raw, {"type", "id", "center_um", "width_um", "length_um", "layer"}, {"grid"}, context)
+        raw = _fields(raw, {"type", "id", "center_um", "width_um", "length_um", "layer"}, {"grid", "angle_deg"}, context)
         kind = _text(raw["type"], context + ".type")
         if kind not in ("line", "cross"):
             raise ConfigError(f"{context}: type must be line or cross")
@@ -140,7 +141,8 @@ def parse_config(data) -> MaskConfig:
             if not isinstance(pitch, list) or len(pitch) != 2:
                 raise ConfigError(f"{context}: grid pitch_um must be [x_spacing, y_spacing]")
             grid = Grid(rows, columns, tuple(_number(v, context + ".grid.pitch_um", True) for v in pitch))
-        structures.append(Structure(kind, sid, center, width, length, layer, grid))
+        angle = _number(raw.get("angle_deg", 0), context + ".angle_deg") % 360
+        structures.append(Structure(kind, sid, center, width, length, layer, grid, angle))
     return MaskConfig(mask_id, layers, tuple(structures))
 
 

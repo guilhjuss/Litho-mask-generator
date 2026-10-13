@@ -10,6 +10,7 @@ layers:
 structures:
   - type: line
     id: L1
+    angle_deg: 0
     center_um: [0, 0]
     width_um: 10
     length_um: 400
@@ -17,6 +18,7 @@ structures:
 
   - type: cross
     id: C1
+    angle_deg: 0
     center_um: [0, 0]
     width_um: 50
     length_um: 200

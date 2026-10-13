@@ -1,6 +1,7 @@
-"""Pure geometry, expressed as axis-aligned rectangles in micrometers."""
+"""Pure geometry: rectangles with optional rotation in micrometers."""
 
 from dataclasses import dataclass, replace
+import math
 
 from .config import MaskConfig, Structure
 
@@ -11,6 +12,22 @@ class Rectangle:
     upper: tuple[float, float]
     layer: str
     structure_id: str
+    angle_deg: float = 0.0
+    rotation_center: tuple[float, float] = (0.0, 0.0)
+
+    @property
+    def points(self) -> tuple[tuple[float, float], ...]:
+        """Actual vertices; lower/upper describe the rectangle before rotation."""
+        x0, y0 = self.lower
+        x1, y1 = self.upper
+        corners = ((x0, y0), (x1, y0), (x1, y1), (x0, y1))
+        if self.angle_deg % 360 == 0:
+            return corners
+        angle = math.radians(self.angle_deg % 360)
+        cosine, sine = math.cos(angle), math.sin(angle)
+        cx, cy = self.rotation_center
+        return tuple((cx + (x - cx) * cosine - (y - cy) * sine,
+                      cy + (x - cx) * sine + (y - cy) * cosine) for x, y in corners)
 
 
 def structure_rectangles(s: Structure) -> list[Rectangle]:
@@ -18,7 +35,7 @@ def structure_rectangles(s: Structure) -> list[Rectangle]:
     w, length = s.width_um, s.length_um
 
     def rect(x0, y0, x1, y1):
-        return Rectangle((x + x0, y + y0), (x + x1, y + y1), s.layer, s.id)
+        return Rectangle((x + x0, y + y0), (x + x1, y + y1), s.layer, s.id, s.angle_deg, s.center_um)
 
     if s.type == "line":
         return [rect(-length / 2, -w / 2, length / 2, w / 2)]

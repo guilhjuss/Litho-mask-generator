@@ -91,3 +91,20 @@ def test_invalid_grid(grid):
     data["structures"][1]["grid"] = grid
     with pytest.raises(ConfigError):
         parse_config(data)
+
+
+@pytest.mark.parametrize("angle", [True, "45", None, float("nan"), float("inf")])
+def test_invalid_angle(angle):
+    data = yaml.safe_load(EXAMPLE.read_text())
+    data["structures"][0]["angle_deg"] = angle
+    with pytest.raises(ConfigError):
+        parse_config(data)
+
+
+def test_independent_angles_and_default():
+    data = yaml.safe_load(EXAMPLE.read_text())
+    assert parse_config(data).structures[0].angle_deg == 0
+    data["structures"][0]["angle_deg"] = -45
+    data["structures"][1]["angle_deg"] = 450
+    config = parse_config(data)
+    assert [s.angle_deg for s in config.structures] == [315, 90]

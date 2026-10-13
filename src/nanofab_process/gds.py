@@ -13,13 +13,19 @@ def export_gds(config: MaskConfig, path: str | Path) -> Path:
     library = gdstk.Library(name=config.id, unit=1e-6, precision=1e-9)
     cell = library.new_cell(config.id)
     for rect in generate_geometry(config):
-        coords = (*rect.lower, *rect.upper)
+        points = rect.points
+        coords = [v for point in points for v in point]
         if any(not math.isfinite(v) or abs(v) > 2147483.647 for v in coords):
             raise ValueError(f"{rect.structure_id}: coordinates exceed the GDS range at 1 nm precision")
-        if any(round(rect.upper[i] * 1000) <= round(rect.lower[i] * 1000) for i in (0, 1)):
+        rounded = [(round(x * 1000), round(y * 1000)) for x, y in points]
+        ox, oy = rounded[0]
+        relative = [(x - ox, y - oy) for x, y in rounded]
+        twice_area = sum(x * relative[(i + 1) % 4][1] - y * relative[(i + 1) % 4][0]
+                         for i, (x, y) in enumerate(relative))
+        if len(set(rounded)) != 4 or twice_area == 0:
             raise ValueError(f"{rect.structure_id}: rectangle collapses at 1 nm precision")
         layer = config.layers[rect.layer]
-        cell.add(gdstk.rectangle(rect.lower, rect.upper, layer=layer.number, datatype=layer.datatype))
+        cell.add(gdstk.Polygon(points, layer=layer.number, datatype=layer.datatype))
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     library.write_gds(path)

@@ -82,3 +82,36 @@ def test_grid_positions_and_export(tmp_path, rows, columns):
                        for r in range(rows) for c in range(columns)]
     library = gdstk.read_gds(export_gds(config, tmp_path / "matrix.gds"))
     assert len(library.top_level()[0].polygons) == rows * columns * 5
+
+
+@pytest.mark.parametrize("angle", [0, 45, 90, -30, 360])
+def test_rotated_line_dimensions_center_and_gds(tmp_path, angle):
+    from dataclasses import replace
+    import math
+    config = load_config(EXAMPLE)
+    line = replace(config.structures[0], center_um=(20, -5), length_um=100, width_um=10, angle_deg=angle)
+    rect, = structure_rectangles(line)
+    polygon = gdstk.Polygon(rect.points)
+    assert polygon.area() == pytest.approx(1000)
+    assert polygon.points.mean(axis=0) == pytest.approx((20, -5))
+    dx, dy = polygon.points[1] - polygon.points[0]
+    assert (dx, dy) == pytest.approx((100 * math.cos(math.radians(angle)), 100 * math.sin(math.radians(angle))), abs=1e-10)
+    library = gdstk.read_gds(export_gds(replace(config, structures=(line,)), tmp_path / "rotated.gds"))
+    assert library.top_level()[0].polygons[0].points == pytest.approx(polygon.points, abs=0.00051)
+
+
+def test_rotated_cross_marker_and_grid_centers(tmp_path):
+    from dataclasses import replace
+    from nanofab_process.config import Grid
+    from nanofab_process.geometry import generate_geometry
+    config = load_config(EXAMPLE)
+    cross = replace(config.structures[1], center_um=(10, 20), angle_deg=90, grid=Grid(2, 2, (30, 40)))
+    config = replace(config, structures=(cross, replace(config.structures[0], angle_deg=45)))
+    rects = generate_geometry(config)
+    centers = [tuple(gdstk.Polygon(r.points).points.mean(axis=0)) for r in rects[:20:5]]
+    assert centers == [(-5, 0), (25, 0), (-5, 40), (25, 40)]
+    marker_center = gdstk.Polygon(rects[4].points).points.mean(axis=0)
+    assert marker_center == pytest.approx((-10, 5))
+    library = gdstk.read_gds(export_gds(config, tmp_path / "mixed.gds"))
+    assert len(library.top_level()[0].polygons) == 21
+    assert library.top_level()[0].polygons[0].points == pytest.approx(gdstk.Polygon(rects[0].points).points, abs=0.00051)
