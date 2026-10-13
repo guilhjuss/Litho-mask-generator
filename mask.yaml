@@ -1,0 +1,23 @@
+mask:
+  id: demo
+  unit: um
+
+layers:
+  metal:
+    number: 1
+    datatype: 0
+
+structures:
+  - type: line
+    id: L1
+    center_um: [0, 0]
+    width_um: 10
+    length_um: 400
+    layer: metal
+
+  - type: cross
+    id: C1
+    center_um: [500, 0]
+    width_um: 2
+    length_um: 6
+    layer: metal
