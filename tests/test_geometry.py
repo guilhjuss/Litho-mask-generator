@@ -9,7 +9,7 @@ from nanofab_process.gds import export_gds
 from nanofab_process.geometry import structure_rectangles
 
 
-EXAMPLE = Path(__file__).with_name("example.yaml")
+EXAMPLE = Path(__file__).with_name("example.json")
 
 
 def test_line_dimensions_and_translation():

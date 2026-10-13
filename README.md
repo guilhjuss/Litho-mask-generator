@@ -25,7 +25,7 @@ Open the generated GDSII file in a layout viewer such as KLayout.
 
 ```yaml
 mask:
-  id: demo
+  id: demo3
   unit: um
 layers:
   metal:
@@ -40,10 +40,14 @@ structures:
     layer: metal
   - type: cross
     id: C1
-    center_um: [500, 0]
-    width_um: 2
-    length_um: 6
+    center_um: [0, 0]
+    width_um: 50
+    length_um: 200
     layer: metal
+    grid:
+      rows: 3
+      columns: 4
+      pitch_um: [600, 600]
 ```
 
 All dimensions and coordinates are micrometers. Positive x is right, positive y is up.
@@ -88,6 +92,6 @@ Add an optional `grid` to any line or cross entry:
 
 `center_um` is the center of the entire matrix. `pitch_um` specifies the center-to-center spacing in x and y, in micrometers. Rows run along y and columns along x. All copies have the same dimensions and layer. Positive integer row/column counts and positive finite pitches are required. Copies may overlap if the pitch is too small; spacing is not an edge-to-edge gap.
 
-Try `nanofab cross_matrix.yaml -o cross_matrix.gds`. The included example has 12 crosses, each 400 x 400 um with 50 um thick arms, spaced 600 um apart. Existing entries without `grid` remain single structures.
+Always edit `mask.yaml` and run `nanofab mask.yaml -o output.gds`. The included mask contains one line and 12 crosses, each 400 x 400 um with 50 um thick arms, spaced 600 um apart. Existing entries without `grid` remain single structures. Remove the `grid` block to return to one cross, or add more entries under `structures` to combine other structures in the same mask.
 
 The generator has no recursive YAML includes, rotations, titles or labels. Add structures directly to `structures`. Export overwrites the selected output file. This project is independent of the existing shared repository.

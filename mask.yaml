@@ -1,5 +1,5 @@
 mask:
-  id: demo
+  id: demo3
   unit: um
 
 layers:
@@ -17,7 +17,11 @@ structures:
 
   - type: cross
     id: C1
-    center_um: [500, 0]
-    width_um: 2
-    length_um: 6
+    center_um: [0, 0]
+    width_um: 50
+    length_um: 200
     layer: metal
+    grid:
+      rows: 3
+      columns: 4
+      pitch_um: [600, 600]

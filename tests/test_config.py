@@ -7,7 +7,7 @@ import yaml
 from nanofab_process.config import ConfigError, load_config, parse_config
 
 
-EXAMPLE = Path(__file__).with_name("example.yaml")
+EXAMPLE = Path(__file__).with_name("example.json")
 
 
 def test_example():
